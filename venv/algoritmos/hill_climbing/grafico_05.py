@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 # Função objetivo
 def f(x1, x2):
-    return (x1 * np.cos(x1)) / 20 + 2 * np.exp((-x1)**2 - (x2 - 1)**2) + 0.01 * x1 * x2
+    return ((x1 * np.cos(x1)) / 20) + 2 * np.exp(- (-x1)**2 - (x2 - 1)**2) + 0.01 * x1 * x2
 
 # Função de pertubação
 def perturb(x, e):

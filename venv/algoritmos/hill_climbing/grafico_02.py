@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 def f(x1, x2):
     return np.exp(-(x1**2 + x2**2)) + 2 * np.exp(-((x1 - 1.7)**2 + (x2 - 1.7)**2))
 
-# Função de pertubação
+# Função de pertubação 
 def perturb(x, e):
     return np.random.uniform(low=x-e, high=x+e, size=2)
 

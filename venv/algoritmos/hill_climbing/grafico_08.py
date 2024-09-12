@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 # Função objetivo
 def f(x1, x2):
-    return (- (x2 + 47)) * np.sin( np.sqrt ( np.absolute ((x1 / 2) + (x2 + 47)))) + x1 * np.sinnp.sin( np.sqrt ( np.absolute (x1 - (x2 + 47))))
+    return (- (x2 + 47)) * np.sin(np.sqrt (np.absolute ((x1 / 2) + (x2 + 47)))) - x1 * np.sin( np.sqrt ( np.absolute (x1 - (x2 + 47))))
 
 # Função de perturbação
 def perturb(x, e):
