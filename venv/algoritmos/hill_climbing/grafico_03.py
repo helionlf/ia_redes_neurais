@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Função objetivo 
+# Função objetivo
 def f(x1, x2):
     return -20 * np.exp(- (0.2 * np.sqrt(0.5 * (x1**2 + x2**2)))) - np.exp(0.5 * (np.cos(2 * np.pi * x1) + np.cos(2 * np.pi * x2))) + 20 + np.exp(1)
 
-# Função de pertubação
+# Função de perturbação 
 def perturb(x, e):
     return np.random.uniform(low=x-e, high=x+e, size=2)
 
@@ -23,43 +23,56 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot_surface(x1_grid, x2_grid, z_vals, cmap='viridis')
 
-# Ponto inicial aleatório dentro do domínio
-x_opt = np.array([np.random.uniform(low=x1_range[0], high=x1_range[1]), 
-                  np.random.uniform(low=x2_range[0], high=x2_range[1])])
-f_opt = f(x_opt[0], x_opt[1])
-
-# Parâmetros do algoritmo
+# Parâmetros
 e = .1  # Vizinhança inicial
 max_it = 1000  # Número máximo de iterações
 max_viz = 50  # Número máximo de vizinhos a considerar
-melhoria = True
-i = 0
-valores = [f_opt]
+t = 100  # Número de iterações sem melhoria para parada antecipada
+R = 100  # Número de rodadas
+valores_finais = []  # Armazena as melhores soluções de cada rodada
 
 # Algoritmo Hill Climbing
-while i < max_it and melhoria:
-    melhoria = False
-    for j in range(max_viz):
-        x_cand = perturb(x_opt, e)  # Gera um novo candidato
-        x_cand[0] = np.clip(x_cand[0], x1_range[0], x1_range[1])  # Manter dentro dos limites de x1
-        x_cand[1] = np.clip(x_cand[1], x2_range[0], x2_range[1])  # Manter dentro dos limites de x2
-        f_cand = f(x_cand[0], x_cand[1])  # Calcula o valor da função no candidato
-        if f_cand < f_opt:  # Se o candidato é melhor
-            x_opt = x_cand
-            f_opt = f_cand
-            valores.append(f_opt)
-            melhoria = True
-            ax.scatter(x_opt[0], x_opt[1], f_opt, color='r', marker='x')
-            break  # Encerra busca na vizinhança se houver melhoria
-    i += 1
+def hill_climbing(x_opt, f_opt):
+    valores = [f_opt]
+    melhoria = True
+    cont_naoMelhorias = 0
+    i = 0
 
-# Marcar o ponto final
-plt.pause(.1)
-ax.scatter(x_opt[0], x_opt[1], f_opt, color='g', marker='x', s=100, linewidth=3)
+    while i < max_it and melhoria:
+        melhoria = False
+        for j in range(max_viz):
+            x_cand = perturb(x_opt, e)  # Gera um novo candidato
+            x_cand[0] = np.clip(x_cand[0], x1_range[0], x1_range[1])  # Mantém dentro dos limites de x1
+            x_cand[1] = np.clip(x_cand[1], x2_range[0], x2_range[1])  # Mantém dentro dos limites de x2
+            f_cand = f(x_cand[0], x_cand[1])  # Calcula o valor da função no candidato
+            
+            if f_cand < f_opt:  # Se o candidato é melhor, atualiza
+                x_opt = x_cand
+                f_opt = f_cand
+                valores.append(f_opt)
+                melhoria = True
+                cont_naoMelhorias = 0  # Reset no contador de melhorias
+                break
+        
+        if not melhoria:
+            cont_naoMelhorias += 1
+            if cont_naoMelhorias >= t:  # Parada antecipada por falta de melhoria
+                break
+        
+        i += 1
+    
+    return f_opt
+
+# Executa o algoritmo R vezes
+for _ in range(R):
+    # Ponto inicial - domínio inferior
+    x_opt = np.array([x1_range[0], x2_range[0]])
+    f_opt = f(x_opt[0], x_opt[1])
+    
+    melhor_solucao = hill_climbing(x_opt, f_opt)
+    valores_finais.append(round(melhor_solucao, 3))
+
 plt.show()
 
-# Plotar a evolução dos valores
-plt.plot(valores)
-plt.xlabel('Iterações')
-plt.ylabel('Valor de f(x1, x2)')
-plt.show()
+# Exibir resultados
+print("Soluções finais:", valores_finais)
