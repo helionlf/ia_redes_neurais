@@ -1,5 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import Counter
+
+def calcula_moda(valores):
+    contagem = Counter(valores)
+    moda = contagem.most_common(1)[0][0]
+    return moda
 
 # Função objetivo
 def f(x1, x2):
@@ -76,3 +82,4 @@ plt.show()
 
 # Exibir resultados
 print("Soluções finais:", valores_finais)
+print("Moda das soluções finais:", calcula_moda(valores_finais))
