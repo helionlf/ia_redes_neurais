@@ -37,7 +37,7 @@ As três primeiras pastas (hill_climbing, busca_local_aleatoria, busca_aleatoria
 
 - **Funções-objetivo**: Pode ser tanto de maximização quanto de minimização, dependendo da aplicação.
 - **Limites de variáveis independentes**: Definidos de acordo com cada problema.
-- **Número máximo de interações**: 1000 interações por execução.
+- **Número máximo de interações**: 10000 interações por execução.
 - **Critério de parada antecipada**: Se o algoritmo rodar 100 interações consecutivas sem encontrar uma solução melhor, ele é interrompido.
 - **Execução**: Cada algoritmo é executado R = 100 vezes. Os valores obtidos são armazenados e utilizados para calcular a **moda** das soluções.
 - **Visualização**: Cada solução gera um gráfico para melhor visualização dos resultados.
