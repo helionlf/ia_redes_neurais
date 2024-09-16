@@ -1,5 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import Counter
+
+def calcula_moda(valores):
+    contagem = Counter(valores)
+    moda = contagem.most_common(1)[0][0]
+    return moda
 
 # Função objetivo
 def f(x1, x2):
@@ -25,7 +31,7 @@ ax.plot_surface(x1_grid, x2_grid, z_vals, cmap='viridis')
 
 # Parâmetros
 e = .1  # Vizinhança inicial
-max_it = 1000  # Número máximo de iterações
+max_it = 10000  # Número máximo de iterações
 max_viz = 50  # Número máximo de vizinhos a considerar
 t = 100  # Número de iterações sem melhoria para parada antecipada
 R = 100  # Número de rodadas
@@ -74,5 +80,6 @@ for _ in range(R):
 
 plt.show()
 
-# Exibir resultados
+# resultados
 print("Soluções finais:", valores_finais)
+print("Moda das soluções finais:", calcula_moda(valores_finais))
