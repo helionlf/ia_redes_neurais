@@ -10,13 +10,13 @@ from scipy import stats
 
 # Função objetivo
 def f(x):
-    return x[0]**2 + x[1]**2
+    return (- np.sin(x[0])) * (np.sin(x[0]**2/ np.pi)** (2 * 10)) - np.sin(x[1]) * (np.sin(2 * x[1]**2 / np.pi) ** (2 * 10))
 
 # Candidato aleatório
 def gera_candidato(limites):
     return np.random.uniform(low=limites[:, 0], high=limites[:, 1])
 
-# Busca Aleatória Global com parada antecipada
+# Busca Aleatória Global
 def busca_aleatoria_global(limites, max_iter=10000, t=100):
     x_opt = gera_candidato(limites)
     f_opt = f(x_opt)
@@ -25,7 +25,7 @@ def busca_aleatoria_global(limites, max_iter=10000, t=100):
     valores_f = [f_opt]
     
     for i in range(max_iter):
-        # Gera um novo candidato aleatório
+        # Novo candidato aleatório
         x_cand = gera_candidato(limites)
         f_cand = f(x_cand)
 
@@ -45,7 +45,7 @@ def busca_aleatoria_global(limites, max_iter=10000, t=100):
 
     return np.round(f_opt, 3)
 
-# Função para rodar várias execuções do GRS e armazenar os resultados
+# Função para rodar R (100) execuções do GRS e armazenar os resultados
 def executa_grs_varias_vezes(limites, R=100, max_iter=10000, t=100):
     solucoes = []
     
@@ -59,7 +59,7 @@ def executa_grs_varias_vezes(limites, R=100, max_iter=10000, t=100):
     return solucoes, np.round(moda_solucoes, 3)
 
 # Limites para as variáveis x1 e x2
-limites = np.array([[-100, 100], [-100, 100]])
+limites = np.array([[0, np.pi], [0, np.pi]])
 
 # Definição do grid para plotar a função 3D
 x1_vals = np.linspace(limites[0, 0], limites[0, 1], 100)
