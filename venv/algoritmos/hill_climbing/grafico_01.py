@@ -34,7 +34,7 @@ e = .1  # Vizinhança inicial
 max_it = 10000  # Número máximo de iterações
 max_viz = 50  # Número máximo de vizinhos a considerar
 t = 100  # Número de iterações sem melhoria para parada antecipada
-R = 1  # Número de rodadas
+R = 100  # Número de rodadas
 valores_finais = []  # Armazena as melhores soluções de cada rodada
 
 # Algoritmo Hill Climbing
@@ -72,13 +72,9 @@ def hill_climbing(x_opt, f_opt):
 # Executa o algoritmo R vezes
 for _ in range(R):
     # Ponto inicial - domínio inferior
-    # x_opt = np.array([x1_range[0], x2_range[0]])
-    # f_opt = f(x_opt[0], x_opt[1])
-    x_opt = np.array([np.random.uniform(low=x1_range[0], high=x1_range[1]), 
-                      np.random.uniform(low=x2_range[0], high=x2_range[1])])
+    x_opt = np.array([x1_range[0], x2_range[0]])
     f_opt = f(x_opt[0], x_opt[1])
-
-    
+ 
     melhor_solucao = hill_climbing(x_opt, f_opt)
     valores_finais.append(round(melhor_solucao, 3))
 

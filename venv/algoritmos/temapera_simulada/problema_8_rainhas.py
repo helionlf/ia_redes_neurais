@@ -66,5 +66,4 @@ max_iter = 10000
 unique_solutions = set()
 while len(unique_solutions) < 92:
     x_final, f_final, exec_time = simulated_annealing(T_initial, max_iter, unique_solutions)
-    print(f"Soluções encontradas: {len(unique_solutions)}/2, Última solução: {x_final} - Time: {exec_time}")
-
+    print(f"Soluções encontradas: {len(unique_solutions)}/92, Última solução: {x_final} - Time: {exec_time}")

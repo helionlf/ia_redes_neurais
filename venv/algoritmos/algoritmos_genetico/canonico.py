@@ -78,10 +78,10 @@ for i in range(100):
     solucoes.append(resultado)
 print("-------------------------------------------------------------------------------------------")
 
-# Extraímos as aptidões das soluções
+# Aptidões das soluções
 aptidoes = np.array([resultado[1] for resultado in solucoes])
 
-# Calculamos as métricas solicitadas
+# Calculos das métricas
 menor_aptidao = np.min(aptidoes)
 maior_aptidao = np.max(aptidoes)
 media_aptidao = np.mean(aptidoes)

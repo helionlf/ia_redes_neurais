@@ -1,12 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats
-# from collections import Counter
+from collections import Counter
 
-# def calcula_moda(valores):
-#     contagem = Counter(valores)
-#     moda = contagem.most_common(1)[0][0]
-#     return moda
+def calcula_moda(valores):
+    contagem = Counter(valores)
+    moda = contagem.most_common(1)[0][0]
+    return moda
 
 # Função objetivo
 def f(x):
@@ -54,7 +53,7 @@ def executa_grs_varias_vezes(limites, R=100, max_iter=10000, t=100):
         solucoes.append(f_opt)
     
     # Calcula a moda das soluções
-    moda_solucoes = stats.mode(solucoes)[0][0]
+    moda_solucoes = calcula_moda(solucoes)
     
     return solucoes, np.round(moda_solucoes, 3)
 
@@ -75,5 +74,5 @@ plt.show()
 # Executa o algoritmo GRS 100 vezes
 solucoes, moda_solucoes = executa_grs_varias_vezes(limites, R=100)
 
-print(f"Moda das soluções: {moda_solucoes}")
 print(f"Soluções encontradas: {solucoes}")
+print(f"Moda das soluções: {moda_solucoes}")
