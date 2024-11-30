@@ -32,9 +32,9 @@ def sign(u):
 
 def perceptron_simples(X, Y, w, N, p, lr):
     erro = True
-    max_epoch = 1
+    max_epoch = 50
     epoca = 0
-    while erro and epoca <= max_epoch:
+    while erro and epoca < max_epoch:
         erro = False
         for t in range(N):
             x_t = X[:, t].reshape(p + 1, 1)
@@ -62,7 +62,7 @@ def adaline(X, Y, w, N, p, lr):
     pr = 1e-5
     EQM1 = 1
     EQM2 = 0
-    max_epoch = 1
+    max_epoch = 50
     epochs = 0
     hist = []
     while epochs < max_epoch and abs(EQM1-EQM2) > pr:
@@ -74,6 +74,7 @@ def adaline(X, Y, w, N, p, lr):
             d_t = Y[0,t]
             e_t = d_t - u_t
             w = w + lr*e_t*x_t
+            w = np.nan_to_num(w, nan=0.0, posinf=1e10, neginf=-1e10)
         epochs+=1
         EQM2 = EQM(X,Y,w)      
     hist.append(EQM2)
@@ -169,15 +170,11 @@ def calcular_metricas(y_pred, y_true):
 #     plt.ylabel("Erro Quadrático Médio (EQM)")
 #     plt.show()
 
-acuracias_perceptron, sensibilidades_perceptron, especificidades_perceptron = [], [], []
-acuracias_adaline, sensibilidades_adaline, especificidades_adaline = [], [], []
-acuracias_mlp, sensibilidades_mlp, especificidades_mlp = [], [], []
-
 res_perceptron = np.empty((0, 3))
 res_adaline = np.empty((0, 3))
 res_mlp = np.empty((0, 3))
 
-lr = 0.1
+lr = 0.01
 C = 1
 R = 500
 
@@ -198,9 +195,6 @@ for i in range(R):
 
     # Calcular métricas para o perceptron simples
     acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
-    acuracias_perceptron.append(acuracia)
-    sensibilidades_perceptron.append(sensibilidade)
-    especificidades_perceptron.append(especificidade)
 
     rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
     res_perceptron = np.concatenate((res_perceptron, rodada_metrics), axis=0)
@@ -211,23 +205,17 @@ for i in range(R):
 
     # Calcular métricas para o adaline
     acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
-    acuracias_adaline.append(acuracia)
-    sensibilidades_adaline.append(sensibilidade)
-    especificidades_adaline.append(especificidade)
 
     rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
     res_adaline = np.concatenate((res_adaline, rodada_metrics), axis=0)
 
     # Treinar o MLP
-    w_entrada_oculta, b_oculta, w_oculta_saida, b_saida = mlp( X_treino, Y_treino, p, 5, C, lr, 1)
+    w_entrada_oculta, b_oculta, w_oculta_saida, b_saida = mlp( X_treino, Y_treino, p, 5, C, lr, 50)
     predicoes = testar_mlp(X_teste, w_entrada_oculta, b_oculta, w_oculta_saida, b_saida)
     y_pred = converter_saida_continua(predicoes)
 
     # Calcular métricas para o MLP
     acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
-    acuracias_mlp.append(acuracia)
-    sensibilidades_mlp.append(sensibilidade)
-    especificidades_mlp.append(especificidade)
 
     rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
     res_mlp = np.concatenate((res_mlp, rodada_metrics), axis=0)
