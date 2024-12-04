@@ -32,7 +32,7 @@ def sign(u):
 
 def perceptron_simples(X, Y, w, N, p, lr):
     erro = True
-    max_epoch = 50
+    max_epoch = 1
     epoca = 0
     while erro and epoca < max_epoch:
         erro = False
@@ -62,7 +62,7 @@ def adaline(X, Y, w, N, p, lr):
     pr = 1e-5
     EQM1 = 1
     EQM2 = 0
-    max_epoch = 50
+    max_epoch = 1
     epochs = 0
     hist = []
     while epochs < max_epoch and abs(EQM1-EQM2) > pr:
@@ -80,58 +80,111 @@ def adaline(X, Y, w, N, p, lr):
     hist.append(EQM2)
     return w
 
+# Função de ativação e sua derivada
 def sigmoid(u):
+    u = np.clip(u, -500, 500)
     return 1 / (1 + np.exp(-u))
 
 def derivada_sigmoid(u):
-    return u * (1 - u)
+    return np.clip(u * (1 - u), 0, 1)
 
-def mlp(X, Y, p, neuronios_camada_oculta, C, lr, epocas_maximas):
-    w_entrada_oculta = np.random.randn(neuronios_camada_oculta, p + 1) * 0.01
-    b_oculta = np.zeros((neuronios_camada_oculta, 1))
-    w_oculta_saida = np.random.randn(C, neuronios_camada_oculta) * 0.01
-    b_saida = np.zeros((C, 1))
+# Função para configurar os pesos da MLP
+def configurar_mlp(Xtreino, Ytreino, L, qtd_neuronios, C):
+    p = Xtreino.shape[0] 
+    W = []
 
-    for epoca in range(epocas_maximas):
-        for t in range(X.shape[1]):  # Para cada amostra
-            # Entrada da amostra com bias
-            x_t = X[:, t].reshape(p + 1, 1)
+    # Inicialização dos pesos com valores aleatórios pequenos
+    for l in range(L + 1):
+        if l == 0: 
+            W.append(np.random.uniform(-0.5, 0.5, (qtd_neuronios[l], p + 1)))
+        elif l == L:
+            W.append(np.random.uniform(-0.5, 0.5, (C, qtd_neuronios[l-1] + 1)))
+        else: 
+            W.append(np.random.uniform(-0.5, 0.5, (qtd_neuronios[l], qtd_neuronios[l-1] + 1)))
 
-            # Saída desejada
-            d_t = Y[:, t].reshape(C, 1)
+    return W
 
-            # Forward pass: Camada oculta
-            u_oculta = w_entrada_oculta @ x_t + b_oculta
-            z_oculta = sigmoid(u_oculta)
+# Forward pass para a MLP
+def forward(Xamostra, W, L):
+    i, y = [], []
+    y_atual = np.vstack([-np.ones((1, Xamostra.shape[1])), Xamostra])  
 
-            # Forward pass: Camada de saída
-            u_saida = w_oculta_saida @ z_oculta + b_saida
-            z_saida = sigmoid(u_saida)
+    for l in range(L + 1):
+        i_atual = W[l] @ y_atual  # Calcula o input para a camada
+        y_atual = sigmoid(i_atual) if l < L else i_atual  # Aplica sigmoide para camadas ocultas
+        i.append(i_atual)
+        if l < L:
+            y_atual = np.vstack([-np.ones((1, y_atual.shape[1])), y_atual])
+        y.append(y_atual)
 
-            # Erro na saída
-            e_t = d_t - z_saida
+    return i, y
 
-            # Backpropagation
-            grad_saida = e_t * derivada_sigmoid(z_saida)
-            grad_oculta = (w_oculta_saida.T @ grad_saida) * derivada_sigmoid(z_oculta)
+# Backward para MLP
+def backward(Xamostra, d, W, i, y, L, eta):
+    delta = [None] * (L + 1)
 
-            # Atualização dos pesos e biases
-            w_oculta_saida += lr * grad_saida @ z_oculta.T
-            b_saida += lr * grad_saida
-            w_entrada_oculta += lr * grad_oculta @ x_t.T
-            b_oculta += lr * grad_oculta
+    # Calcula o delta da saída
+    erro_saida = d - y[L] 
+    delta[L] = erro_saida * derivada_sigmoid(y[L])
 
-    return w_entrada_oculta, b_oculta, w_oculta_saida, b_saida
+    # Backpropagation para os deltas das camadas ocultas
+    for l in range(L - 1, -1, -1):
+        W_sem_bias = W[l + 1][:, 1:]
+        delta[l] = (W_sem_bias.T @ delta[l + 1]) * derivada_sigmoid(y[l][1:, :])
 
-def testar_mlp(X_teste, w_entrada_oculta, b_oculta, w_oculta_saida, b_saida):
-    u_oculta = w_entrada_oculta @ X_teste + b_oculta
-    z_oculta = sigmoid(u_oculta)
-    u_saida = w_oculta_saida @ z_oculta + b_saida
-    z_saida = sigmoid(u_saida)
-    return np.argmax(z_saida, axis=0)
+    # Atualiza os pesos
+    for l in range(L + 1):
+        if l == 0:
+            entrada = Xamostra
+        else:
+            entrada = y[l - 1][1:, :]
 
-def converter_saida_continua(y_continuo):
-    return np.where(y_continuo > 0.5, 1, -1)
+        # Adiciona o bias à entrada antes da atualização
+        entrada_com_bias = np.vstack([-np.ones((1, entrada.shape[1])), entrada])
+        W[l] += eta * (delta[l] @ entrada_com_bias.T)  # Atualiza os pesos
+        W[l] = np.nan_to_num(W[l], nan=0.0, posinf=1e10, neginf=-1e10)
+    return W
+
+def calcular_EQM(Xtreino, Ytreino, W, L):
+    EQM = 0
+    N = Xtreino.shape[1]
+
+    for t in range(N):
+        xamostra = Xtreino[:, [t]]
+        d = Ytreino[:, [t]]
+        _, y = forward(xamostra, W, L)
+        EQM += np.sum((d - y[L]) ** 2)
+
+    return EQM / (2 * N)
+
+# Função para treinamento do MLP
+def treinar_mlp(Xtreino, Ytreino, L, qtd_neuronios, C, eta, maxEpoch, criterio_parada):
+    W = configurar_mlp(Xtreino, Ytreino, L, qtd_neuronios, C)
+    N = Xtreino.shape[1]
+    EQM = 1
+    epoch = 0
+
+    while EQM > criterio_parada and epoch < maxEpoch:
+        for t in range(N):
+            xamostra = Xtreino[:, [t]]
+            d = Ytreino[:, [t]]
+            i, y = forward(xamostra, W, L)
+            W = backward(xamostra, d, W, i, y, L, eta)
+
+        EQM = calcular_EQM(Xtreino, Ytreino, W, L)
+        epoch += 1
+    return W
+
+# Função para testar a0 MLP
+def testar_mlp(Xteste, W, L):
+    y_pred = []
+
+    for t in range(Xteste.shape[1]):
+        xamostra = Xteste[:, [t]]
+        _, y = forward(xamostra, W, L)
+        y_pred.append(np.sign(y[L]))  # Classificação por sinal
+
+    return np.hstack(y_pred)
 
 def calcular_metricas(y_pred, y_true):
     vp = np.sum((y_pred == 1) & (y_true == 1))  
@@ -145,30 +198,8 @@ def calcular_metricas(y_pred, y_true):
 
     return acuracia, sensibilidade, especificidade
 
-# def matriz_confusao(y_pred, y_true):
-#     vp = np.sum((y_pred == 1) & (y_true == 1))  
-#     vn = np.sum((y_pred == -1) & (y_true == -1)) 
-#     fp = np.sum((y_pred == 1) & (y_true == -1))  
-#     fn = np.sum((y_pred == -1) & (y_true == 1)) 
-    
-#     conf_matrix = np.array([[vp, fn], 
-#                             [fp, vn]])
-#     return conf_matrix
-
-# def plot_matriz_confusao(conf_matrix, titulo):
-#     plt.figure(figsize=(6, 4))
-#     sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=['+1', '-1'], yticklabels=['+1', '-1'])
-#     plt.title(titulo)
-#     plt.xlabel("Classe prevista")
-#     plt.ylabel("Classe real")
-#     plt.show()
-
-# def plot_curva_aprendizado(hist, titulo):
-#     plt.plot(hist)
-#     plt.title(titulo)
-#     plt.xlabel("Épocas")
-#     plt.ylabel("Erro Quadrático Médio (EQM)")
-#     plt.show()
+def normalizar_dados(X):
+    return (X - np.min(X)) / (np.max(X) - np.min(X))
 
 res_perceptron = np.empty((0, 3))
 res_adaline = np.empty((0, 3))
@@ -209,16 +240,23 @@ for i in range(R):
     rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
     res_adaline = np.concatenate((res_adaline, rodada_metrics), axis=0)
 
-    # Treinar o MLP
-    w_entrada_oculta, b_oculta, w_oculta_saida, b_saida = mlp( X_treino, Y_treino, p, 5, C, lr, 50)
-    predicoes = testar_mlp(X_teste, w_entrada_oculta, b_oculta, w_oculta_saida, b_saida)
-    y_pred = converter_saida_continua(predicoes)
+    # Treinar O MLP
+    qtd_neuronios = [8, 4, 4, 8]  
+    L = len(qtd_neuronios)
+    maxEpoch = 1
+    critérioParada = 1e-5
+    eta = 0.01
 
-    # Calcular métricas para o MLP
-    acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
+    X_treino = normalizar_dados(X_treino)
+    
+    W_mlp = treinar_mlp(X_treino, Y_treino, L, qtd_neuronios, C, eta, maxEpoch, critérioParada)
+    y_pred = testar_mlp(X_teste, W_mlp, L)
+    
+    # Calcular métricas para a MLP
+    acuracia_mlp, sensibilidade_mlp, especificidade_mlp = calcular_metricas(y_pred, Y_teste.flatten())
 
-    rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
-    res_mlp = np.concatenate((res_mlp, rodada_metrics), axis=0)
+    rodada_metrics_mlp = np.array([[acuracia_mlp, sensibilidade_mlp, especificidade_mlp]])
+    res_mlp = np.concatenate((res_mlp, rodada_metrics_mlp), axis=0)
 
 # Resultados finais
 
@@ -257,34 +295,3 @@ print("Média de acurácias, sencibilidade e especificidade repectivamente: ", r
 print("Desvio-padrão de acurácias, sencibilidade e especificidade repectivamente: ", rss_std)
 print("Mínimo, sencibilidade e especificidade repectivamente: ", rss_min)
 print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
-
-# # Melhores e piores casos para Perceptron
-# melhor_idx_perceptron = np.argmax(acuracias_perceptron)
-# pior_idx_perceptron = np.argmin(acuracias_perceptron)
-
-# # Melhores e piores casos para Adaline
-# melhor_idx_adaline = np.argmax(acuracias_adaline)
-# pior_idx_adaline = np.argmin(acuracias_adaline)
-
-# melhor_perceptron = (acuracias_perceptron[melhor_idx_perceptron], sensibilidades_perceptron[melhor_idx_perceptron], especificidades_perceptron[melhor_idx_perceptron])
-# pior_perceptron = (acuracias_perceptron[pior_idx_perceptron], sensibilidades_perceptron[pior_idx_perceptron], especificidades_perceptron[pior_idx_perceptron])
-
-# melhor_adaline = (acuracias_adaline[melhor_idx_adaline], sensibilidades_adaline[melhor_idx_adaline], especificidades_adaline[melhor_idx_adaline])
-# pior_adaline = (acuracias_adaline[pior_idx_adaline], sensibilidades_adaline[pior_idx_adaline], especificidades_adaline[pior_idx_adaline])
-
-# # Matrizes de confusão
-# y_pred_melhor = np.sign(res_perceptron[melhor_idx_perceptron].flatten())
-# conf_matriz_melhor = matriz_confusao(y_pred_melhor, Y_teste.flatten())
-# plot_matriz_confusao(conf_matriz_melhor, "Matriz de Confusão - Melhor Perceptron")
-
-# y_pred_pior = np.sign(res_perceptron[pior_idx_perceptron].flatten())
-# conf_matriz_pior = matriz_confusao(y_pred_pior, Y_teste.flatten())
-# plot_matriz_confusao(conf_matriz_pior, "Matriz de Confusão - Pior Perceptron")
-
-# y_pred_melhor = np.sign(res_adaline[melhor_idx_adaline].flatten())
-# conf_matriz_melhor = matriz_confusao(y_pred_melhor, Y_teste.flatten())
-# plot_matriz_confusao(conf_matriz_melhor, "Matriz de Confusão - Melhor Adaline")
-
-# y_pred_pior = np.sign(res_adaline[pior_idx_adaline].flatten())
-# conf_matriz_pior = matriz_confusao(y_pred_pior, Y_teste.flatten())
-# plot_matriz_confusao(conf_matriz_pior, "Matriz de Confusão - Pior Adaline")
