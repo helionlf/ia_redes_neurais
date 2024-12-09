@@ -32,7 +32,7 @@ def sign(u):
 
 def perceptron_simples(X, Y, w, N, p, lr):
     erro = True
-    max_epoch = 1
+    max_epoch = 50
     epoca = 0
     while erro and epoca < max_epoch:
         erro = False
@@ -62,7 +62,7 @@ def adaline(X, Y, w, N, p, lr):
     pr = 1e-5
     EQM1 = 1
     EQM2 = 0
-    max_epoch = 1
+    max_epoch = 50
     epochs = 0
     hist = []
     while epochs < max_epoch and abs(EQM1-EQM2) > pr:
@@ -198,6 +198,33 @@ def calcular_metricas(y_pred, y_true):
 
     return acuracia, sensibilidade, especificidade
 
+# Calcular a matriz de confusão
+def calcular_matriz_confusao(y_true, y_pred, num_classes):
+    matriz = np.zeros((num_classes, num_classes), dtype=int)
+    for real, pred in zip(y_true, y_pred):
+        matriz[real, pred] += 1
+    return matriz
+
+# Plotar a matriz de confusão
+def plotar_matriz_confusao(matriz, titulo):
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(matriz, annot=True, fmt='d', cmap='Blues', cbar=False)
+    plt.title(titulo)
+    plt.xlabel("Predito")
+    plt.ylabel("Real")
+    plt.show()
+
+# Plotar a curva de aprendizado
+def plotar_curva_aprendizado(acuracias, titulo):
+    plt.figure(figsize=(10, 6))
+    plt.plot(acuracias, marker='o', label="Acurácia")
+    plt.title(titulo)
+    plt.xlabel("Rodada")
+    plt.ylabel("Acurácia")
+    plt.grid()
+    plt.legend()
+    plt.show()
+
 def normalizar_dados(X):
     return (X - np.min(X)) / (np.max(X) - np.min(X))
 
@@ -243,7 +270,7 @@ for i in range(R):
     # Treinar O MLP
     qtd_neuronios = [8, 4, 4, 8]  
     L = len(qtd_neuronios)
-    maxEpoch = 1
+    maxEpoch = 50
     critérioParada = 1e-5
     eta = 0.01
 
@@ -251,6 +278,7 @@ for i in range(R):
     
     W_mlp = treinar_mlp(X_treino, Y_treino, L, qtd_neuronios, C, eta, maxEpoch, critérioParada)
     y_pred = testar_mlp(X_teste, W_mlp, L)
+    
     
     # Calcular métricas para a MLP
     acuracia_mlp, sensibilidade_mlp, especificidade_mlp = calcular_metricas(y_pred, Y_teste.flatten())
