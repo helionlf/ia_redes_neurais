@@ -65,8 +65,10 @@ def normalizar_dados(X):
 
 
 
-
-
+X = np.concatenate((
+    -np.ones((1,N)),
+    X)
+)
 
 
 def sign(u):
@@ -79,8 +81,8 @@ def perceptron_simples(X, Y, w, N, p, lr):
     while erro and epoca < max_epoch:
         erro = False
         for t in range(N):
-            x_t = X[:, t].reshape(p, 1)
-            u_t = (w.T @ x_t)[0, 0]
+            x_t = X[:, t].reshape(p+1, 1)
+            u_t = (w @ x_t)[0, 0]
             y_t = sign(u_t)
             d_t = float(Y[0, t])
             e_t = d_t - y_t
@@ -111,11 +113,12 @@ def adaline(X, Y, w, N, p, lr):
         EQM1 = EQM(X,Y,w)
         hist.append(EQM1)
         for t in range(N):
-            x_t = X[:,t].reshape(p, 1)
-            u_t = w.T@x_t
+            x_t = X[:,t].reshape(p+1, 1)
+            u_t = w@x_t
             d_t = Y[0,t]
             e_t = d_t - u_t
-            w = w + lr*e_t*x_t
+            print(f"{x_t.shape}, {e_t.shape}")
+            w = w + lr*e_t*x_t.T
             w = np.nan_to_num(w, nan=0.0, posinf=1e10, neginf=-1e10)
         epochs+=1
         EQM2 = EQM(X,Y,w)      
@@ -258,11 +261,17 @@ for i in range(R):
     X_treino, Y_treino = X[:, :split], Y[:, :split]
     X_teste, Y_teste = X[:, split:], Y[:, split:]
 
-    w = np.random.random_sample((p, 1)) - 0.5
+    w = np.random.random_sample((C, p+1)) - 0.5
 
     # Treinar o perceptron simples
     w_final = perceptron_simples(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
-    y_pred = np.sign(w_final.T @ X_teste).flatten()
+
+    y_pred = np.sign(w_final.T @ X_teste)
+    print(w_final.shape)
+    print(Y_teste.shape)
+    print(X_teste.shape)
+    x= input()
+
 
     # Calcular métricas para o perceptron simples
     acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
@@ -285,6 +294,7 @@ for i in range(R):
     L = len(qtd_neuronios)
     maxEpoch = 1
     critérioParada = 1e-5
+    
     eta = 0.01
 
     X_treino = normalizar_dados(X_treino)

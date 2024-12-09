@@ -88,12 +88,12 @@ def sigmoid(u):
 def derivada_sigmoid(u):
     return np.clip(u * (1 - u), 0, 1)
 
-# Função para configurar os pesos da MLP
+# Configurar os pesos da MLP
 def configurar_mlp(Xtreino, Ytreino, L, qtd_neuronios, C):
     p = Xtreino.shape[0] 
     W = []
 
-    # Inicialização dos pesos com valores aleatórios pequenos
+    # Inicialização dos pesos
     for l in range(L + 1):
         if l == 0: 
             W.append(np.random.uniform(-0.5, 0.5, (qtd_neuronios[l], p + 1)))
@@ -104,7 +104,7 @@ def configurar_mlp(Xtreino, Ytreino, L, qtd_neuronios, C):
 
     return W
 
-# Forward pass para a MLP
+# Forward pass para o MLP
 def forward(Xamostra, W, L):
     i, y = [], []
     y_atual = np.vstack([-np.ones((1, Xamostra.shape[1])), Xamostra])  
@@ -279,7 +279,7 @@ for i in range(R):
     W_mlp = treinar_mlp(X_treino, Y_treino, L, qtd_neuronios, C, eta, maxEpoch, critérioParada)
     y_pred = testar_mlp(X_teste, W_mlp, L)
     
-    
+
     # Calcular métricas para a MLP
     acuracia_mlp, sensibilidade_mlp, especificidade_mlp = calcular_metricas(y_pred, Y_teste.flatten())
 
