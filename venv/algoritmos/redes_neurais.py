@@ -249,28 +249,28 @@ for i in range(R):
 
     w = np.random.random_sample((3, 1)) - 0.5
 
-    # # Treinar o perceptron simples
-    # w_final = perceptron_simples(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
-    # y_pred = np.sign(w_final.T @ X_teste).flatten()
+    # Treinar o perceptron simples
+    w_final = perceptron_simples(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
+    y_pred = np.sign(w_final.T @ X_teste).flatten()
 
-    # # Calcular métricas para o perceptron simples
-    # acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
+    # Calcular métricas para o perceptron simples
+    acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
 
-    # rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
-    # res_perceptron = np.concatenate((res_perceptron, rodada_metrics), axis=0)
+    rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
+    res_perceptron = np.concatenate((res_perceptron, rodada_metrics), axis=0)
 
-    # # Treinar o adaline
-    # w_final = adaline(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
-    # y_pred = np.sign(w_final.T @ X_teste).flatten()
+    # Treinar o adaline
+    w_final = adaline(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
+    y_pred = np.sign(w_final.T @ X_teste).flatten()
 
-    # # Calcular métricas para o adaline
-    # acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
+    # Calcular métricas para o adaline
+    acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
 
-    # rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
-    # res_adaline = np.concatenate((res_adaline, rodada_metrics), axis=0)
+    rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
+    res_adaline = np.concatenate((res_adaline, rodada_metrics), axis=0)
 
     # Treinar O MLP
-    qtd_neuronios = [8, 4, 2, 4, 8]  
+    qtd_neuronios = [4]  
     L = len(qtd_neuronios)
     maxEpoch = 100
     critérioParada = 1e-5
@@ -290,29 +290,29 @@ for i in range(R):
 
 # Resultados finais
 
-# # Resultados perceptron simples
-# rss_mean = np.mean(res_perceptron, axis=0)
-# rss_std = np.std(res_perceptron, axis=0)
-# rss_min = np.min(res_perceptron, axis=0)
-# rss_max = np.max(res_perceptron, axis=0)
+# Resultados perceptron simples
+rss_mean = np.mean(res_perceptron, axis=0)
+rss_std = np.std(res_perceptron, axis=0)
+rss_min = np.min(res_perceptron, axis=0)
+rss_max = np.max(res_perceptron, axis=0)
 
-# print("Métricas para perceptron simples:")
-# print("Média de acurácias, sencibilidade e especificidade repectivamente: ", rss_mean)
-# print("Desvio-padrão de acurácias, sencibilidade e especificidade repectivamente: ", rss_std)
-# print("Mínimo de acurácias, sencibilidade e especificidade repectivamente: ", rss_min)
-# print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
+print("Métricas para perceptron simples:")
+print("Média de acurácias, sencibilidade e especificidade repectivamente: ", rss_mean)
+print("Desvio-padrão de acurácias, sencibilidade e especificidade repectivamente: ", rss_std)
+print("Mínimo de acurácias, sencibilidade e especificidade repectivamente: ", rss_min)
+print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
 
-# # Resultados adaline
-# rss_mean = np.mean(res_adaline, axis=0)
-# rss_std = np.std(res_adaline, axis=0)
-# rss_min = np.min(res_adaline, axis=0)
-# rss_max = np.max(res_adaline, axis=0)
+# Resultados adaline
+rss_mean = np.mean(res_adaline, axis=0)
+rss_std = np.std(res_adaline, axis=0)
+rss_min = np.min(res_adaline, axis=0)
+rss_max = np.max(res_adaline, axis=0)
 
-# print("\nMétricas para adaline:")
-# print("Média de acurácias, sencibilidade e especificidade repectivamente: ", rss_mean)
-# print("Desvio-padrão de acurácias, sencibilidade e especificidade repectivamente: ", rss_std)
-# print("Mínimo de acurácias, sencibilidade e especificidade repectivamente: ", rss_min)
-# print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
+print("\nMétricas para adaline:")
+print("Média de acurácias, sencibilidade e especificidade repectivamente: ", rss_mean)
+print("Desvio-padrão de acurácias, sencibilidade e especificidade repectivamente: ", rss_std)
+print("Mínimo de acurácias, sencibilidade e especificidade repectivamente: ", rss_min)
+print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
 
 # Resultados mlp
 rss_mean = np.mean(res_mlp, axis=0)

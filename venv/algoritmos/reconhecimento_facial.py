@@ -62,7 +62,7 @@ def sign(u):
 
 def perceptron_simples(X, Y, w, N, p, lr):
     erro = True
-    max_epoch = 1
+    max_epoch = 100
     epoca = 0
     while erro and epoca < max_epoch:
         erro = False
@@ -93,7 +93,7 @@ def adaline(X, Y, w, N, p, lr):
     pr = 1e-5
     EQM1 = 1
     EQM2 = 0
-    max_epoch = 1
+    max_epoch = 100
     epochs = 0
     hist = []
     while epochs < max_epoch and abs(EQM1-EQM2) > pr:
@@ -245,22 +245,21 @@ for i in range(R):
     w = np.random.random_sample((C, p+1)) - 0.5
 
     # Treinar o perceptron simples
-    # w_final = perceptron_simples(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
-    # y_pred = w_final @ X_teste
-    
-    # acuracia_perceptron = calcular_acuracia(y_pred, Y_teste)
-    # res_perceptron.append(acuracia_perceptron)
+    w_final = perceptron_simples(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
+    y_pred = w_final @ X_teste
+    acuracia_perceptron = calcular_acuracia(y_pred, Y_teste)
+    res_perceptron.append(acuracia_perceptron)
 
     # # Treinar o adaline
-    # w_final = adaline(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
-    # y_pred = w_final @ X_teste
-    # acuracia_adaline = calcular_acuracia(y_pred, Y_teste)
-    # res_adaline.append(acuracia_adaline)
+    w_final = adaline(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
+    y_pred = w_final @ X_teste
+    acuracia_adaline = calcular_acuracia(y_pred, Y_teste)
+    res_adaline.append(acuracia_adaline)
 
-    # Treinar O MLP
+    #Treinar O MLP
     qtd_neuronios = [100]  
     L = len(qtd_neuronios)
-    maxEpoch = 1
+    maxEpoch = 100
     critérioParada = 1e-5
     
     eta = 0.01
@@ -273,28 +272,28 @@ for i in range(R):
 # Resultados finais
 
 # Resultados perceptron simples
-# rss_mean = np.mean(res_perceptron, axis=0)
-# rss_std = np.std(res_perceptron, axis=0)
-# rss_min = np.min(res_perceptron, axis=0)
-# rss_max = np.max(res_perceptron, axis=0)
+rss_mean = np.mean(res_perceptron, axis=0)
+rss_std = np.std(res_perceptron, axis=0)
+rss_min = np.min(res_perceptron, axis=0)
+rss_max = np.max(res_perceptron, axis=0)
 
-# print("Métricas para perceptron simples:")
-# print("Média de acurácias: ", rss_mean)
-# print("Desvio-padrão de acurácias: ", rss_std)
-# print("Mínimo de acurácias, sencibilidade e especificidade repectivamente: ", rss_min)
-# print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
+print("Métricas para perceptron simples:")
+print("Média de acurácias: ", rss_mean)
+print("Desvio-padrão de acurácias: ", rss_std)
+print("Mínimo de acurácias: ", rss_min)
+print("Máximo de acurácias: ", rss_max)
 
 # # Resultados adaline
-# rss_mean = np.mean(res_adaline, axis=0)
-# rss_std = np.std(res_adaline, axis=0)
-# rss_min = np.min(res_adaline, axis=0)
-# rss_max = np.max(res_adaline, axis=0)
+rss_mean = np.mean(res_adaline, axis=0)
+rss_std = np.std(res_adaline, axis=0)
+rss_min = np.min(res_adaline, axis=0)
+rss_max = np.max(res_adaline, axis=0)
 
-# print("\nMétricas para adaline:")
-# print("Média de acurácias: ", rss_mean)
-# print("Desvio-padrão de acurácias: ", rss_std)
-# print("Mínimo de acurácias: ", rss_min)
-# print("Máximo de acurácias: ", rss_max)
+print("\nMétricas para adaline:")
+print("Média de acurácias: ", rss_mean)
+print("Desvio-padrão de acurácias: ", rss_std)
+print("Mínimo de acurácias: ", rss_min)
+print("Máximo de acurácias: ", rss_max)
 
 # # Resultados mlp
 rss_mean = np.mean(res_mlp, axis=0)
