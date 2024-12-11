@@ -3,12 +3,6 @@ import matplotlib.pyplot as plt
 import cv2
 import os
 
-#ATENÇÃO:
-#Salve este algoritmo no mesmo diretório no qual a pasta chamada RecFac está.
-
-
-#A tarefa nessa etapa é realizar o reconhecimento facial de 20 pessoas
-
 #Dimensões da imagem. Você deve explorar esse tamanho de acordo com o solicitado no pdf.
 dimensao = 50 #50 signica que a imagem terá 50 x 50 pixels. ?No trabalho é solicitado para que se investigue dimensões diferentes:
 # 50x50, 40x40, 30x30, 20x20, 10x10 .... (tua equipe pode tentar outros redimensionamentos.)
@@ -53,23 +47,15 @@ for i,pessoa in enumerate(caminho_pessoas):
         ),axis=1)
        
 p,N=X.shape
-    
-
 
 # Normalização dos dados (A EQUIPE DEVE ESCOLHER O TIPO E DESENVOLVER):
 def normalizar_dados(X):
     return (X - np.min(X)) / (np.max(X) - np.min(X))
 
-# Início das rodadas de monte carlo
-#Aqui podem existir as definições dos hiperparâmetros de cada modelo.
-
-
-
 X = np.concatenate((
     -np.ones((1,N)),
     X)
 )
-
 
 def sign(u):
     return 1 if u >= 0 else -1
@@ -86,7 +72,8 @@ def perceptron_simples(X, Y, w, N, p, lr):
             y_t = sign(u_t)
             d_t = float(Y[0, t])
             e_t = d_t - y_t
-            w = w + (lr * e_t * x_t) / 2
+            # print(f"{x_t.shape}, {e_t.shape}")
+            w = w + (lr * e_t * x_t.T) / 2
             if y_t != d_t:
                 erro = True
         epoca += 1
@@ -97,7 +84,7 @@ def EQM(X,Y,w):
     eq = 0
     for t in range(N):
         x_t = X[:,t].reshape(p_1,1)
-        u_t = w.T@x_t
+        u_t = w@x_t
         d_t = Y[0,t]
         eq += (d_t-u_t[0,0])**2
     return eq/(2*N)
@@ -114,10 +101,9 @@ def adaline(X, Y, w, N, p, lr):
         hist.append(EQM1)
         for t in range(N):
             x_t = X[:,t].reshape(p+1, 1)
-            u_t = w@x_t
+            u_t = w @ x_t
             d_t = Y[0,t]
             e_t = d_t - u_t
-            print(f"{x_t.shape}, {e_t.shape}")
             w = w + lr*e_t*x_t.T
             w = np.nan_to_num(w, nan=0.0, posinf=1e10, neginf=-1e10)
         epochs+=1
@@ -155,8 +141,8 @@ def forward(Xamostra, W, L):
     y_atual = np.vstack([-np.ones((1, Xamostra.shape[1])), Xamostra])  
 
     for l in range(L + 1):
-        i_atual = W[l] @ y_atual  # Calcula o input para a camada
-        y_atual = sigmoid(i_atual) if l < L else i_atual  # Aplica sigmoide para camadas ocultas
+        i_atual = W[l] @ y_atual  #calcular o input para a camada
+        y_atual = sigmoid(i_atual) if l < L else i_atual  #sigmoide para camadas ocultas
         i.append(i_atual)
         if l < L:
             y_atual = np.vstack([-np.ones((1, y_atual.shape[1])), y_atual])
@@ -184,7 +170,7 @@ def backward(Xamostra, d, W, i, y, L, eta):
         else:
             entrada = y[l - 1][1:, :]
 
-        # Adiciona o bias à entrada antes da atualização
+        #adicionando bias a entrada antes da atualização
         entrada_com_bias = np.vstack([-np.ones((1, entrada.shape[1])), entrada])
         W[l] += eta * (delta[l] @ entrada_com_bias.T)  # Atualiza os pesos
         W[l] = np.nan_to_num(W[l], nan=0.0, posinf=1e10, neginf=-1e10)
@@ -227,26 +213,21 @@ def testar_mlp(Xteste, W, L):
     for t in range(Xteste.shape[1]):
         xamostra = Xteste[:, [t]]
         _, y = forward(xamostra, W, L)
-        y_pred.append(np.argmax(y[L], axis=0))  # Classificação por sinal
+        y_pred.append(np.argmax(y[L], axis=0))
 
     return np.hstack(y_pred)
 
-def calcular_metricas(y_pred, y_true):
-    vp = np.sum((y_pred == 1) & (y_true == 1))  
-    vn = np.sum((y_pred == -1) & (y_true == -1)) 
-    fp = np.sum((y_pred == 1) & (y_true == -1))  
-    fn = np.sum((y_pred == -1) & (y_true == 1)) 
+def calcular_acuracia(y_pred, y_real):
+    pred_classes = np.argmax(y_pred, axis=0)
+    real_classes = np.argmax(y_real, axis=0)
 
-    acuracia = (vp + vn) / len(y_true)
-    sensibilidade = vp / (vp + fn) if (vp + fn) > 0 else 0
-    especificidade = vn / (vn + fp) if (vn + fp) > 0 else 0
+    acertos = np.sum(pred_classes == real_classes)
 
-    return acuracia, sensibilidade, especificidade
+    return acertos / y_real.shape[1]
 
-res_perceptron = np.empty((0, 3))
-res_adaline = np.empty((0, 3))
-res_mlp = np.empty((0, 3))
-
+res_perceptron = []
+res_adaline = []
+res_mlp = []
 
 lr = 0.1
 R = 50
@@ -264,84 +245,65 @@ for i in range(R):
     w = np.random.random_sample((C, p+1)) - 0.5
 
     # Treinar o perceptron simples
-    w_final = perceptron_simples(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
+    # w_final = perceptron_simples(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
+    # y_pred = w_final @ X_teste
+    
+    # acuracia_perceptron = calcular_acuracia(y_pred, Y_teste)
+    # res_perceptron.append(acuracia_perceptron)
 
-    y_pred = np.sign(w_final.T @ X_teste)
-    print(w_final.shape)
-    print(Y_teste.shape)
-    print(X_teste.shape)
-    x= input()
-
-
-    # Calcular métricas para o perceptron simples
-    acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
-
-    rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
-    res_perceptron = np.concatenate((res_perceptron, rodada_metrics), axis=0)
-
-    # Treinar o adaline
-    w_final = adaline(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
-    y_pred = np.sign(w_final.T @ X_teste).flatten()
-
-    # Calcular métricas para o adaline
-    acuracia, sensibilidade, especificidade = calcular_metricas(y_pred, Y_teste.flatten())
-
-    rodada_metrics = np.array([[acuracia, sensibilidade, especificidade]])
-    res_adaline = np.concatenate((res_adaline, rodada_metrics), axis=0)
+    # # Treinar o adaline
+    # w_final = adaline(X_treino, Y_treino, w, X_treino.shape[1], p, lr)
+    # y_pred = w_final @ X_teste
+    # acuracia_adaline = calcular_acuracia(y_pred, Y_teste)
+    # res_adaline.append(acuracia_adaline)
 
     # Treinar O MLP
-    qtd_neuronios = [8, 4, 2, 4, 8]  
+    qtd_neuronios = [100]  
     L = len(qtd_neuronios)
     maxEpoch = 1
     critérioParada = 1e-5
     
     eta = 0.01
-
-    X_treino = normalizar_dados(X_treino)
     
     W_mlp = treinar_mlp(X_treino, Y_treino, L, qtd_neuronios, C, eta, maxEpoch, critérioParada)
     y_pred = testar_mlp(X_teste, W_mlp, L)
-    
-    # Calcular métricas para a MLP
-    acuracia_mlp, sensibilidade_mlp, especificidade_mlp = calcular_metricas(y_pred, Y_teste.flatten())
-
-    rodada_metrics_mlp = np.array([[acuracia_mlp, sensibilidade_mlp, especificidade_mlp]])
-    res_mlp = np.concatenate((res_mlp, rodada_metrics_mlp), axis=0)
+    acuracia_mlp = calcular_acuracia(y_pred, Y_teste)
+    res_mlp.append(acuracia_mlp)
 
 # Resultados finais
 
 # Resultados perceptron simples
-rss_mean = np.mean(res_perceptron, axis=0)
-rss_std = np.std(res_perceptron, axis=0)
-rss_min = np.min(res_perceptron, axis=0)
-rss_max = np.max(res_perceptron, axis=0)
+# rss_mean = np.mean(res_perceptron, axis=0)
+# rss_std = np.std(res_perceptron, axis=0)
+# rss_min = np.min(res_perceptron, axis=0)
+# rss_max = np.max(res_perceptron, axis=0)
 
-print("Métricas para perceptron simples:")
-print("Média de acurácias, sencibilidade e especificidade repectivamente: ", rss_mean)
-print("Desvio-padrão de acurácias, sencibilidade e especificidade repectivamente: ", rss_std)
-print("Mínimo de acurácias, sencibilidade e especificidade repectivamente: ", rss_min)
-print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
+# print("Métricas para perceptron simples:")
+# print("Média de acurácias: ", rss_mean)
+# print("Desvio-padrão de acurácias: ", rss_std)
+# print("Mínimo de acurácias, sencibilidade e especificidade repectivamente: ", rss_min)
+# print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
 
-# Resultados adaline
-rss_mean = np.mean(res_adaline, axis=0)
-rss_std = np.std(res_adaline, axis=0)
-rss_min = np.min(res_adaline, axis=0)
-rss_max = np.max(res_adaline, axis=0)
+# # Resultados adaline
+# rss_mean = np.mean(res_adaline, axis=0)
+# rss_std = np.std(res_adaline, axis=0)
+# rss_min = np.min(res_adaline, axis=0)
+# rss_max = np.max(res_adaline, axis=0)
 
-print("\nMétricas para adaline:")
-print("Média de acurácias, sencibilidade e especificidade repectivamente: ", rss_mean)
-print("Desvio-padrão de acurácias, sencibilidade e especificidade repectivamente: ", rss_std)
-print("Mínimo de acurácias, sencibilidade e especificidade repectivamente: ", rss_min)
-print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
+# print("\nMétricas para adaline:")
+# print("Média de acurácias: ", rss_mean)
+# print("Desvio-padrão de acurácias: ", rss_std)
+# print("Mínimo de acurácias: ", rss_min)
+# print("Máximo de acurácias: ", rss_max)
 
-# Resultados mlp
+# # Resultados mlp
 rss_mean = np.mean(res_mlp, axis=0)
 rss_std = np.std(res_mlp, axis=0)
 rss_min = np.min(res_mlp, axis=0)
 rss_max = np.max(res_mlp, axis=0)
 
 print("\nMétricas para mlp:")
-print("Média de acurácias, sencibilidade e especificidade repectivamente: ", rss_mean)
-print("Desvio-padrão de acurácias, sencibilidade e especificidade repectivamente: ", rss_std)
-print("Mínimo de acurácias, sencibilidade e especificidade repectivamente: ", rss_min)
-print("Máximo de acurácias, sencibilidade e especificidade repectivamente: ", rss_max)
+print("Média de acurácias: ", rss_mean)
+print("Desvio-padrão de acurácias: ", rss_std)
+print("Mínimo de acurácias: ", rss_min)
+print("Máximo de acurácias: ", rss_max)
